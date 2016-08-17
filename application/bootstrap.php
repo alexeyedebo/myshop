@@ -19,49 +19,35 @@ else
 /**
  * Set the default time zone.
  *
- * @link http://kohanaframework.org/guide/using.configuration
- * @link http://www.php.net/manual/timezones
+ * @see  http://kohanaframework.org/guide/using.configuration
+ * @see  http://php.net/timezones
  */
 date_default_timezone_set('Europe/Kiev');
 
 /**
  * Set the default locale.
  *
- * @link http://kohanaframework.org/guide/using.configuration
- * @link http://www.php.net/manual/function.setlocale
+ * @see  http://kohanaframework.org/guide/using.configuration
+ * @see  http://php.net/setlocale
  */
 setlocale(LC_ALL, 'en_US.utf-8');
+
 
 /**
  * Enable the Kohana auto-loader.
  *
- * @link http://kohanaframework.org/guide/using.autoloading
- * @link http://www.php.net/manual/function.spl-autoload-register
+ * @see  http://kohanaframework.org/guide/using.autoloading
+ * @see  http://php.net/spl_autoload_register
  */
 spl_autoload_register(array('Kohana', 'auto_load'));
 
 /**
- * Optionally, you can enable a compatibility auto-loader for use with
- * older modules that have not been updated for PSR-0.
- *
- * It is recommended to not enable this unless absolutely necessary.
- */
-//spl_autoload_register(array('Kohana', 'auto_load_lowercase'));
-
-/**
  * Enable the Kohana auto-loader for unserialization.
  *
- * @link http://www.php.net/manual/function.spl-autoload-call
- * @link http://www.php.net/manual/var.configuration#unserialize-callback-func
+ * @see  http://php.net/spl_autoload_call
+ * @see  http://php.net/manual/var.configuration.php#unserialize-callback-func
  */
 ini_set('unserialize_callback_func', 'spl_autoload_call');
-
-/**
- * Set the mb_substitute_character to "none"
- *
- * @link http://www.php.net/manual/function.mb-substitute-character.php
- */
-mb_substitute_character('none');
 
 // -- Configuration and initialization -----------------------------------------
 
@@ -69,12 +55,6 @@ mb_substitute_character('none');
  * Set the default language
  */
 I18n::lang('en-us');
-
-if (isset($_SERVER['SERVER_PROTOCOL']))
-{
-	// Replace the default protocol.
-	HTTP::$protocol = $_SERVER['SERVER_PROTOCOL'];
-}
 
 /**
  * Set Kohana::$environment if a 'KOHANA_ENV' environment variable has been supplied.
@@ -96,14 +76,13 @@ if (isset($_SERVER['KOHANA_ENV']))
  * - string   index_file  name of your index file, usually "index.php"       index.php
  * - string   charset     internal character set used for input and output   utf-8
  * - string   cache_dir   set the internal cache directory                   APPPATH/cache
- * - integer  cache_life  lifetime, in seconds, of items cached              60
  * - boolean  errors      enable or disable error handling                   TRUE
  * - boolean  profile     enable or disable internal profiling               TRUE
  * - boolean  caching     enable or disable internal caching                 FALSE
- * - boolean  expose      set the X-Powered-By header                        FALSE
  */
 Kohana::init(array(
-	'base_url'   => '/kohana/',
+	'base_url'   => '/',
+       // 'index_file' => false
 ));
 
 /**
@@ -120,32 +99,76 @@ Kohana::$config->attach(new Config_File);
  * Enable modules. Modules are referenced by a relative or absolute path.
  */
 Kohana::modules(array(
-	// 'auth'       => MODPATH.'auth',       // Basic authentication
-	// 'cache'      => MODPATH.'cache',      // Caching with multiple backends
-	// 'codebench'  => MODPATH.'codebench',  // Benchmarking tool
-	// 'database'   => MODPATH.'database',   // Database access
-	// 'image'      => MODPATH.'image',      // Image manipulation
-	// 'minion'     => MODPATH.'minion',     // CLI Tasks
-	// 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
-	// 'unittest'   => MODPATH.'unittest',   // Unit testing
-	// 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
+	 'auth'       => MODPATH.'auth',       // Basic authentication
+	'cache'      => MODPATH.'cache',      // Caching with multiple backends
+	 'codebench'  => MODPATH.'codebench',  // Benchmarking tool
+	 'database'   => MODPATH.'database',   // Database access
+	 'image'      => MODPATH.'image',      // Image manipulation
+	 'orm'        => MODPATH.'orm',        // Object Relationship Mapping
+	 'unittest'   => MODPATH.'unittest',   // Unit testing
+	 'userguide'  => MODPATH.'userguide',  // User guide and API documentation
+/*        'pagination'    => MODPATH.'pagination',
+        'orm-mptt'    => MODPATH.'orm-mptt',
+        'email'    => MODPATH.'email',*/
 	));
-
-/**
- * Cookie Salt
- * @see  http://kohanaframework.org/3.3/guide/kohana/cookies
- * 
- * If you have not defined a cookie salt in your Cookie class then
- * uncomment the line below and define a preferrably long salt.
- */
-// Cookie::$salt = NULL;
 
 /**
  * Set the routes. Each route must have a minimum of a name, a URI and a set of
  * defaults for the URI.
  */
-Route::set('default', '(<controller>(/<action>(/<id>)))')
+
+//if ( ! Route::cache()) {
+Route::set('widgets', 'widgets(/<controller>(/<param>))', array('param' => '.+'))
 	->defaults(array(
-		'controller' => 'Index',  //указываем контроллер
+            'action'     => 'index',
+            'directory' => 'widgets',
+	));
+
+Route::set('auth', '<action>', array('action' => 'login|logout|register'))
+	->defaults(array(
+                'directory'  => 'index',
+		'controller' => 'auth',
+	));
+
+Route::set('catalog', 'catalog(/<action>(/c<cat>)(/<id>))')
+	->defaults(array(
+                'directory'  => 'index',
+                'action' => 'index',
+		'controller' => 'catalog',
+	));
+
+Route::set('contacts', 'page/contacts')
+	->defaults(array(
+                'directory'  => 'index',
+                'action' => 'contacts',
+		'controller' => 'page',
+	));
+Route::set('page', 'page(/<page_alias>)')
+	->defaults(array(
+                'directory'  => 'index',
+                'action' => 'index',
+		'controller' => 'page',
+	));
+
+Route::set('search', 'search')
+	->defaults(array(
+                'directory'  => 'index',
+		'controller' => 'search',
+	));
+
+Route::set('admin', 'admin(/<controller>(/<action>(/page<page>)(/<id>)))')
+	->defaults(array(
+            'directory'  => 'admin',
+            'controller' => 'main',
+            'action'     => 'index',
+	));
+
+
+Route::set('default', '(<controller>(/<action>(/page<page>)(/<id>)))')
+	->defaults(array(
+                'directory'  => 'index',
+		'controller' => 'main',
 		'action'     => 'index',
 	));
+//Route::cache(TRUE);
+//}
